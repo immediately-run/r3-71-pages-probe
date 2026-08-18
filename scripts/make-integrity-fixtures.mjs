@@ -11,7 +11,7 @@
 // several legs at once cannot tell you which leg the host actually reacted to.
 //
 //   forged-entries.zip  — RL2-1, the entries↔tree binding.
-//       A file's bytes are replaced AND its `entries[].sha` is updated to the true git
+//       A rendered file's bytes are replaced AND its `entries[].sha` is updated to the true git
 //       blob sha of the new bytes, so per-blob verification still PASSES. `treeSha` and
 //       `commitSha` keep their genuine upstream values. The only thing that can catch
 //       this is recomputing the root tree from `entries[]` — which is precisely the
@@ -91,21 +91,31 @@ if (!source) {
 {
   const dir = explode(source);
   const m = readSidecar(dir);
-  const target = 'src/App.tsx';
+  // The target carries RENDERED TEXT on purpose. An earlier version of this fixture
+  // poisoned `src/App.tsx` by prepending a comment — which cannot render, so a load
+  // that silently accepted the forgery would have looked identical to one that
+  // rejected it. A drill whose failure mode is invisible proves nothing.
+  const target = 'src/components/Hero.tsx';
+  // No angle brackets: the marker is substituted into JSX TEXT, where a bare `<`
+  // opens a tag and the app would fail to COMPILE. A compile error is a different
+  // signal from "the forgery was accepted", and confusing the two would make the
+  // drill unreadable.
+  const MARKER = 'POISONED BY R3-43 FIXTURE — the entries/tree binding did NOT fire';
   const entry = m.entries.find((e) => e.path === target);
   if (!entry) {
     console.error(`fixture target ${target} is not in entries[] — pick another file`);
     process.exit(1);
   }
 
-  // Visibly poisoned content: if the tree-binding check ever regressed, this string
-  // renders on screen, so the drill has an unmistakable positive signal and not just
-  // an absence of one.
-  const poisoned = Buffer.from(
-    `// R3-43 FIXTURE — forged-entries. This file is NOT what upstream contains.\n` +
-      `// If you can see this rendering, the entries<->tree binding (RL2-1) did not fire.\n` +
-      readFileSync(join(dir, target), 'utf8'),
-  );
+  // Substitute the hero's headline, so the two outcomes are distinguishable ON SCREEN:
+  // rejection (+ REST recovery) shows the genuine copy, acceptance shows MARKER.
+  const original = readFileSync(join(dir, target), 'utf8');
+  const HEADLINE = 'Go build.';
+  if (!original.includes(HEADLINE)) {
+    console.error(`fixture target ${target} no longer contains ${JSON.stringify(HEADLINE)}`);
+    process.exit(1);
+  }
+  const poisoned = Buffer.from(original.replace(HEADLINE, MARKER));
   writeFileSync(join(dir, target), poisoned);
 
   // The forgery: entries[] is made SELF-CONSISTENT with the poisoned bytes, so blob
