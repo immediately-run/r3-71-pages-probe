@@ -98,6 +98,19 @@ jobs:
             --default-branch "${{ github.event.repository.default_branch }}" \
             --out "_site/cached_repositories/${{ github.ref_name }}.zip"
 
+      # R3-43 (D4.1 drill) — derive the two zip-integrity fixtures from the genuine
+      # zip just built, and publish them alongside it as `forged-entries.zip` and
+      # `extra-entry.zip`. A Pages deploy replaces the WHOLE site, so the fixtures
+      # have to ride the same run as the real zip; they cannot be published by a
+      # separate workflow run without deleting main.zip.
+      #
+      # They are derived in code from the genuine zip rather than committed as
+      # binaries, so what was tampered with is reviewable and stays correct as this
+      # repo changes. This repo is a fixture — never add this step to a real app's
+      # workflow, where it would serve a poisoned zip to actual users.
+      - name: Build zip-integrity drill fixtures (R3-43)
+        run: node scripts/make-integrity-fixtures.mjs "_site/cached_repositories"
+
       # A friendly landing page so the Pages root isn't a bare 404. Optional —
       # delete it if you serve your own content from Pages. (To also host a live
       # build of the app here, run `npm ci && npm run build` and copy `dist/`
