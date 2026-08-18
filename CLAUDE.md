@@ -26,7 +26,12 @@ local `vite dev` — the most common silent failure.
 7. **Import local assets** (`import logo from './assets/logo.png'`); don't
    reference server paths that won't exist in the sandbox.
 8. **No Node / build-time-only APIs** in the rendered tree — it runs in a browser
-   iframe. `localStorage`, `document`, `window`, and `fetch` are available.
+   iframe. `document`, `window`, and `fetch` are available. **`localStorage` is
+   NOT** — apps run at an OPAQUE origin, where merely touching `window.localStorage`
+   throws `SecurityError`, so a `typeof` guard does not help and it must be
+   try/catch. It works under `vite dev` (same-origin) and in jsdom, so this only
+   shows up on the real host — and it throws during render, taking the whole app
+   down rather than one feature. `src/hooks/useTheme.ts` shows the pattern.
 9. **MDX is only for long-form prose** (articles, guides). Structured/repeated
    data stays as typed arrays in `src/data/`. If you add `.mdx`, the Vite plugin
    and `src/mdx.d.ts` shim are already wired up.

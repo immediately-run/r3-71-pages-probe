@@ -22,8 +22,9 @@ function Counter() {
           </button>
         </div>
         <p className="hint">
-          useState, useEffect, fetch, localStorage — all available. Build your
-          real UI the same way.
+          useState, useEffect, fetch — all available. Build your real UI the same
+          way. (localStorage is not: apps run at an opaque origin, where touching it
+          throws.)
         </p>
       </div>
     </section>
