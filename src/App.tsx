@@ -25,9 +25,3 @@ function App() {
 }
 
 export default App;
-
-<!-- r3-660 drill A -->
-  <!-- r3-660 drill A -->
-    <!-- r3-660 drill A -->
-      <!-- r3-660 drill A -->
-        <!-- r3-660 drill A -->
